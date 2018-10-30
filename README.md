@@ -2,24 +2,24 @@
 
 Intentionally best-effort publishing.
 Possible to lose or duplicate a message on crash or error.
-If kafka errors or unavailable, write messages to filesystem until kafka recovers or errors resolved.
+If kafka errors or is unavailable, writes messages to the filesystem until kafka available again.
 
 Queues messages in memory.
 Worker attempts to publish to kafka topic with fixed retries.
-When kafka publish retries exhausted, switch to writing messages to filesystem.
-Continues to retry kafka in background.
-When kafka recovers switches to writing to kakfa.
+When kafka publish retries exhausted, switch to writing messages to filesystem until kafka available again.
+Tries to write to filesystem with limited retries before logging error and discarding.
+Periodically retries publishing to kafka in background.
+When successful, immediately switches back to publishing to kakfa.
 
 Future
-When kafka recovers, start background job to load messages from filesystem to kafka.
-Messages written to filesystem will be likely be published to kafka out-of-order with respect to current messages.
+When kafka recovers, start background job to load messages from filesystem into kafka.
+Messages written to filesystem will be published to kafka out-of-order with respect to current messages being published.
 
 Log and discard message if
 
   * bad key - (null, undefined, Boolean, Symbol) must be (string, number, object)
-  * key too large
   * bad value - not JSON object
-  * value too large
+  * message too large
 
 ## Requirements
 
@@ -39,37 +39,36 @@ import { KafkaPublisher, publish, getStatistics } from 'kafka-publisher'
 const options = { connectionString: '127.0.0.1:9092', defaultTopic: 'someTopicName' } // comma delimited list of seed brokers
 const kp = new KafkaPublisher(options)
 
-const messageKey = 'someKey'
-const messageBody = { foo: 'bar', bar: 'baz' }
+const key = 'someKey'
+const message = { foo: 'bar', bar: 'baz' }
 
-kp.queue(messageKey, messageBody) // NOT async, queues synchronously and asynchronously persists/retries in background or falls-back to appending to a file
+kp.queue(key, message) // NOT async, queues synchronously and asynchronously persists/retries in background or falls-back to appending to a file
 ```
 
 ### Options
 
-All supported options
+The only required option is 'connectionString'. Other options generally have reasonable defaults.
 
-The only required option is 'connectionString'.
-
-All other options generally have reasonable defaults.
+To avoid having to specify the topic on every message, set a defaultTopic.
+If the topic is passed with a message, it overrides the defaultTopic.
 
 ```javascript
 const defaultOptions = {
   //producer defaults
-  defaultTopic: 'someTopicName',
-  requiredAcks: -1
-  timeout: 30000
+  defaultTopic: undefined,
+  requiredAcks: -1, // all in-sync replicas
+  timeout: 30000,
   partitioner: new Kafka.DefaultPartitioner(),
   retries: {
     attempts: 7, // 2.8 sec @ 7 retries min 100, max 1000 - 100+200+300+400+500+600+700=2800
     delay: {
-      min: 100,
-      max: 1000,
+      min: 100, // 100 ms
+      max: 1000, // 1 sec
     },
   },
   batch: {
     size: 16384,
-    maxWait: 100
+    maxWait: 100 // 100 ms
   },
   codec: Kafka.COMPRESSION_NONE,
 
@@ -107,7 +106,7 @@ const defaultOptions = {
 
   // fallback defaults - where to write to filesystem
   fallback: {
-    directory: 'kafkaFallbackLogs', // non-ephemeral filesystem mount, shared by all nodes
+    directory: 'kafkaFallbackLogs', // recommend a non-ephemeral filesystem mount, shared by all nodes
     retryOptions: {
       retries: 5, // not strictly required, however disables creating default retry table
       // retries: 10000, // 10K ~2 months - creates a retry schedule for all retries (rediculous, why not computing) 8 9's causes FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory

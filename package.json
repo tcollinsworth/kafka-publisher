@@ -3,6 +3,9 @@
   "version": "0.1.1",
   "description": "simple kafka message publisher",
   "main": "kafka-publisher.js",
+  "keywords": [
+    "kafka"
+  ],
   "scripts": {
     "watchInteg": "ava --fail-fast -v **/__integ-tests__/**/*test*.js --watch",
     "watchUnit": "DEBUG=kafka* ava --fail-fast -v **/__tests__/**/*test*.js --watch",
@@ -13,7 +16,7 @@
     "lint": "eslint . --ext=js --ignore-pattern '**/__tests__' --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix"
   },
   "author": "Troy Collinsworth",
-  "license": "ISC",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git@github.com:tcollinsworth/kafka-publisher.git"
