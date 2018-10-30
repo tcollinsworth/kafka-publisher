@@ -24,7 +24,8 @@ test.afterEach.always(async () => {
 
 test('queue message', async t => {
   createKp(t)
-  //kp.init() //retries forever, await blocks till ready, not desirable for fallback
+  kp.init() //retries forever, await blocks till ready, not desirable for fallback
+  await delay(1000)
   kp.queue('key', {foo: 'bar'}) // use defaultTopic
   t.is(1, kp.queued())
   await delay(1000)

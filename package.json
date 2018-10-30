@@ -1,6 +1,6 @@
 {
   "name": "kafka-publisher",
-  "version": "1.0.0",
+  "version": "0.1.1",
   "description": "simple kafka message publisher",
   "main": "kafka-publisher.js",
   "scripts": {
@@ -14,6 +14,10 @@
   },
   "author": "Troy Collinsworth",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:tcollinsworth/kafka-publisher.git"
+  },
   "devDependencies": {
     "ava": "^0.16.0",
     "babel-cli": "^6.24.1",
