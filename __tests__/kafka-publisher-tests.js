@@ -26,10 +26,17 @@ test('queue message', async t => {
   createKp(t)
   kp.init() //retries forever, await blocks till ready, not desirable for fallback
   await delay(1000)
-  kp.queue('key', {foo: 'bar'}) // use defaultTopic
-  t.is(1, kp.queued())
-  await delay(1000)
-  console.log(kp.getStatistics())
+  while (true) {
+    kp.queue('key', {foo: 'bar'}) // use defaultTopic
+    await delay(500)
+    console.log(kp.getStatistics())
+    await delay(5000)
+  }
+  // await delay(1000)
+  // kp.queue('key', {foo: 'bar'}) // use defaultTopic
+  // t.is(1, kp.queued())
+  // await delay(1000)
+  // console.log(kp.getStatistics())
 })
 
 // Log and discard message if

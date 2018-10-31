@@ -11,7 +11,8 @@ Tries to write to filesystem with limited retries before logging error and disca
 Periodically retries publishing to kafka in background.
 When successful, immediately switches back to publishing to kakfa.
 
-Future
+Future:
+
 When kafka recovers, start background job to load messages from filesystem into kafka.
 Messages written to filesystem will be published to kafka out-of-order with respect to current messages being published.
 
@@ -34,16 +35,33 @@ npm i kafka-publisher --save
 # Usage
 
 ```javascript
-import { KafkaPublisher, publish, getStatistics } from 'kafka-publisher'
+import { KafkaPublisher } from 'kafka-publisher'
 
-const options = { connectionString: '127.0.0.1:9092', defaultTopic: 'someTopicName' } // comma delimited list of seed brokers
+const options = {
+  // comma delimited list of seed brokers
+  connectionString: '127.0.0.1:9092',
+  defaultTopic: 'someTopicName'
+}
 const kp = new KafkaPublisher(options)
 
 const key = 'someKey'
 const message = { foo: 'bar', bar: 'baz' }
 
-kp.queue(key, message) // NOT async, queues synchronously and asynchronously persists/retries in background or falls-back to appending to a file
+// queue is synchronous
+// asynchronously persists/retries in background
+// if retries exhausted, falls-back to appending to a file
+// when kafka available, continues publishing to kafka
+kp.queue(key, message)
 ```
+
+# Methods
+
+   * `KafkaPublisher(options)` - constructor, creates publisher and client
+   * `init()` - initializes kafka, connecting to broker, returns promise, but should not await if utilizing fallback
+   * `end()` - closes the kafka connection, return promise
+   * `queue(key, message, [topic])` - queue a message for publishing to kafka, the defaultTopic will be used unless topic is provided
+   * `getStatistics()` - gets all statistics, should be exposed via a REST endpoint
+   * `resetStatistics()` - resets all statistics, should be exposed via a REST endpoint
 
 ### Options
 

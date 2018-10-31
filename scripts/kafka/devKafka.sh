@@ -18,7 +18,7 @@ sleep 10
 ~/kafka/bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic "test-topic"
 
 # create topic
-~/kafka/bin/kafka-topics.sh --create --if-not-exists --zookeeper localhost:2181 --replication-factor 1 --partitions 2 --topic "test-topic"
+~/kafka/bin/kafka-topics.sh --create --if-not-exists --zookeeper localhost:2181 --replication-factor 1 --partitions 2 --config message.timestamp.type=LogAppendTime --topic "test-topic"
 
 # start monitor on topic
 gnome-terminal --title="kafka consumer" -x sh -c "~/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic test-topic --property print.timestamp=true --property print.key=true --from-beginning; bash"
