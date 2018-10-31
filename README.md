@@ -70,6 +70,11 @@ The only required option is 'connectionString'. Other options generally have rea
 To avoid having to specify the topic on every message, set a defaultTopic.
 If the topic is passed with a message, it overrides the defaultTopic.
 
+The option fallback.directory specifies where the fallback-<UUIDv4>.log will append messages while kafka is unavailable.
+For a pool of servers, it is recommended this be a non-ephemeral filesystem mounted on all the nodes.
+For example NFS on kubernetes/openshift or Amazon Web Services EFS https://aws.amazon.com/efs/
+
+
 ```javascript
 const defaultOptions = {
   //producer defaults
