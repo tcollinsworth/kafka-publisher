@@ -1,61 +1,46 @@
 import { serial as test } from 'ava'
-import sinon from 'sinon'
+// import sinon from 'sinon'
 import delay from 'delay'
 
-import * as k from '../index'
+import { KafkaPublisher } from '../index'
 
-const mockKafkaProducer = {
-  send: sinon.stub(),
-  init: sinon.stub(),
-  end: sinon.stub(),
+let kp
+
+// test.beforeEach(t => {
+//
+// })
+
+function createKp(t) {
+  kp = new KafkaPublisher({ connectionString: '127.0.0.12:9092', defaultTopic: 'test-topic' })
+  t.not(null, kp)
+  t.is(0, kp.queued())
 }
 
-k.kafka.initKafkaProducer = function() {
-  return mockKafkaProducer
-}
-
-test.beforeEach(() => {
-  reset()
-})
-
-test.afterEach.always(t => {
-  reset()
-})
-
-function reset() {
-  resetMockStubFunctions(k.kafka.Producer)
-}
-
-function resetMockStubFunctions(mock) {
-  for(const p in mock) {
-    if (mock[p].isSinonProxy) {
-      mock[p].reset()
-    }
+test.afterEach.always(async () => {
+  if (kp != null) {
+    await kp.end()
   }
-}
+})
 
-//TODO construct
-//TODO init
-//TODO end
-//TODO queue
-//TODO queue no defaultTopic
-//TODO queueMessages
-//TODO queueMessages no defaultTopic
-//TODO getStatistics, resetStatistics
-//TODO validateKey
-//TODO validateValue
-//TODO handleQueued
-//TODO retry
-//TODO fallback
-//TODO kafka success
-//TODO kafka message too large
-//TODO kafka no topic
-//TODO kafka perpetual failure
-//TODO kafka failure, then recovery
-
-test('queue message', async t => {
+test('queue message', async (t) => {
+  createKp(t)
+  kp.init() // retries forever, await blocks till ready, not desirable for fallback
   await delay(1000)
-  t.is(true, true)
+  while (true) {
+    kp.queue('key', { foo: 'bar' }) // use defaultTopic
+    kp.queueMessages([
+      { key: 'key1', value: { foo1: 'bar1' } },
+      { key: 'key2', message: { foo2: 'bar2' } },
+    ]) // use defaultTopic
+    await delay(500)
+    console.log(kp.getStatistics())
+    await delay(5000)
+  }
+  // await delay(1000)
+  // kp.queue('key', {foo: 'bar'}) // use defaultTopic
+  // t.is(1, kp.queued())
+  // await delay(1000)
+  // console.log(kp.getStatistics())
 })
 
 // success

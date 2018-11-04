@@ -24,7 +24,7 @@ Log and discard message if
 
 ## Requirements
 
-Node 8+
+Node 10+
 
 ## Getting started
 
@@ -52,6 +52,15 @@ const message = { foo: 'bar', bar: 'baz' }
 // if retries exhausted, falls-back to appending to a file
 // when kafka available, continues publishing to kafka
 kp.queue(key, message)
+
+// OR
+// queue array of messages
+// topic is optional and uses defaultTopic if not provided
+// [
+//   { key, message, topic },
+//   ...
+// ]
+kp.queueMessages(messageArray)
 ```
 
 # Methods
@@ -60,6 +69,7 @@ kp.queue(key, message)
    * `init()` - initializes kafka, connecting to broker, returns promise, but should not await if utilizing fallback
    * `end()` - closes the kafka connection, return promise
    * `queue(key, message, [topic])` - queue a message for publishing to kafka, the defaultTopic will be used unless topic is provided
+   * `queueMessages([{key, message, [topic]}, ...])` - queue a messages for publishing to kafka, the defaultTopic will be used unless topic is provided
    * `getStatistics()` - gets all statistics, should be exposed via a REST endpoint
    * `resetStatistics()` - resets all statistics, should be exposed via a REST endpoint
 
