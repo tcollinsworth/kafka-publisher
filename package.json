@@ -1,6 +1,6 @@
 {
   "name": "kafka-publisher",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
   "main": "kafka-publisher.js",
   "keywords": [
@@ -18,7 +18,9 @@
     "coverageDetail": "nyc --reporter=html --reporter=text ava",
     "ava": "ava",
     "test": "npm run ava",
-    "start": "nodemon --exec node lib/logging.js",
+    "build": "babel lib --presets babel-preset-es2015 --out-dir dist",
+    "prepublish": "npm run build",
+    "start": "nodemon --exec babel-node lib/logging.js",
     "lint": "eslint . --ext=js --ignore-pattern '**/__tests__' --ignore-pattern '**/__integ-tests__' --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix",
     "watchLint": "esw . --ext=js --ignore-pattern '**/__tests__' --ignore-pattern '**/__integ-tests__' --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix --watch"
   },
@@ -34,6 +36,11 @@
   },
   "devDependencies": {
     "ava": "^0.16.0",
+    "babel-cli": "^6.24.1",
+    "babel-eslint": "^7.2.3",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.5.2",
+    "babel-register": "^6.24.1",
     "delay": "^4.1.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb-base": "^11.2.0",
@@ -44,6 +51,7 @@
     "sinon": "^2.3.5"
   },
   "dependencies": {
+    "babel-polyfill": "^6.23.0",
     "debug": "^2.6.8",
     "json-stringify-safe": "^5.0.1",
     "esm": "^3.0.84",
@@ -60,7 +68,10 @@
     "failFast": true,
     "verbose": true,
     "require": [
-      "ignore-styles"
-    ]
+      "ignore-styles",
+      "babel-register",
+      "babel-polyfill"
+    ],
+    "babel": "inherit"
   }
 }

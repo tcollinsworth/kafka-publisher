@@ -155,3 +155,7 @@ const defaultOptions = {
   },
 }
 ```
+
+# Reverted to es5
+
+Update index.js and the following to switch to es6 supported by node 10.
