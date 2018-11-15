@@ -1,8 +1,22 @@
 import { serial as test } from 'ava'
 import sinon from 'sinon'
 import delay from 'delay'
+import waitUntil from 'async-wait-until'
 
 import * as k from '../index'
+
+const testRetryOptions = {
+  retries: null, // not strictly required, however disables creating default retry table
+  // retries: 10000, // 10K ~2 months - creates a retry schedule for all retries (rediculous, why not computing) 8 9's causes FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
+  forever: true, // use this instead of retries or it will create a lookup table for all retries wasting cycles and memory
+  factor: 2,
+  minTimeout: 1, // 1 sec
+  maxTimeout: 10, // 10 sec
+  randomize: true,
+}
+
+let kafkaOptions
+let fallbackOptions
 
 const mockKafkaProducer = {
   send: sinon.stub(),
@@ -10,8 +24,19 @@ const mockKafkaProducer = {
   end: sinon.stub(),
 }
 
-k.kafka.initKafkaProducer = function() {
+const mockFallbackPublisher = {
+  getStatistics: sinon.stub(),
+  send: sinon.stub(),
+}
+
+k.kafka.initKafkaProducer = function(options) {
+  kafkaOptions = options
   return mockKafkaProducer
+}
+
+k.fallback.initFallbackPublisher = function(options) {
+  fallbackOptions = options
+  return mockFallbackPublisher
 }
 
 test.beforeEach(() => {
@@ -23,7 +48,11 @@ test.afterEach.always(t => {
 })
 
 function reset() {
-  resetMockStubFunctions(k.kafka.Producer)
+  resetMockStubFunctions(mockKafkaProducer)
+  kafkaOptions = undefined
+
+  resetMockStubFunctions(mockFallbackPublisher)
+  fallbackOptions = undefined
 }
 
 function resetMockStubFunctions(mock) {
@@ -34,10 +63,167 @@ function resetMockStubFunctions(mock) {
   }
 }
 
-//TODO construct
-//TODO init
-//TODO end
-//TODO queue
+test('happy constructor and options', async t => {
+  const options = {
+    // producer
+    defaultTopic: 'testTopic',
+    requiredAcks: 1,
+    retries: {
+      attempts: 2,
+      delay: {
+        min: 333,
+        max: 3333,
+      },
+    },
+    batch: {
+      size: 4,
+      maxWait: 444,
+    },
+
+    // client
+    clientId: 'testClient',
+    connectionString: 'testConnString',
+    reconnectionDelay: {
+      min: 5,
+      max: 555,
+    },
+
+    // init retry options
+    retryOptions: {
+      retries: 6,
+      forever: false,
+      factor: 7,
+      minTimeout: 77,
+      maxTimeout: 777,
+      randomize: false,
+    },
+
+    // fallback defaults - where to write to filesystem
+    fallback: {
+      directory: 'kafkaFallbackLogs',
+      ownershipTimeoutMs: 8,
+      retryOptions: {
+        retries: 9,
+        factor: 1,
+        minTimeout: 222, // 0.1 sec
+        maxTimeout: 2222, // 2 sec
+        randomize: false,
+      },
+    },
+  }
+  const kp = new k.KafkaPublisher(options)
+
+  t.deepEqual(options, kafkaOptions)
+  t.deepEqual(options.fallback, fallbackOptions)
+})
+
+test('constructor options undefined connectionString throws error', async t => {
+  const options = { connectionString: undefined }
+  try {
+    const kp = new k.KafkaPublisher(options)
+    t.fail('expected error')
+  } catch (err) {
+    t.pass()
+  }
+})
+
+test('constructor options undefined throws error', async t => {
+  const options = undefined
+  try {
+    const kp = new k.KafkaPublisher(options)
+    t.fail('expected error')
+  } catch (err) {
+    t.pass()
+  }
+})
+
+test('happy init', async t => {
+  const kp = new k.KafkaPublisher({connectionString: 'foo'})
+  kp.init()
+
+  await waitUntil(() => kp.getStatistics().kafkaReady)
+  t.is(1, mockKafkaProducer.init.args.length)
+})
+
+test('one error, happy init', async t => {
+  mockKafkaProducer.init.onCall(0).returns(Promise.reject(new Error('test')))
+
+  const kp = new k.KafkaPublisher({connectionString: 'foo', retryOptions: testRetryOptions})
+  kp.init()
+
+  await waitUntil(() => kp.getStatistics().kafkaReady)
+  await waitUntil(() => mockKafkaProducer.init.args.length > 1)
+  t.is(2, mockKafkaProducer.init.args.length)
+  t.is('test', kp.getStatistics().lastError)
+  t.truthy(kp.getStatistics().lastErrorTs)
+})
+
+test('happy end', async t => {
+  const kp = new k.KafkaPublisher({connectionString: 'foo'})
+  kp.end()
+
+  await waitUntil(() => mockKafkaProducer.end.args.length > 0)
+})
+
+test('happy queue and publishing to kafka', async t => {
+  mockKafkaProducer.send.onCall(0).returns(Promise.resolve([ { topic: 'testTopic', partition: 0, error: null, offset: 1 } ]))
+
+  const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic',})
+  kp.init()
+
+  await waitUntil(() => kp.getStatistics().kafkaReady)
+
+  const mesg = { foo: 'bar' }
+  kp.queue('key', mesg)
+
+  await waitUntil(() => kp.getStatistics().queueCnt > 0)
+  await waitUntil(() => kp.getStatistics().sentCnt > 0)
+  await waitUntil(() => mockKafkaProducer.send.args.length > 0)
+
+  t.is('testTopic', mockKafkaProducer.send.args[0][0].topic)
+  t.deepEqual('key', mockKafkaProducer.send.args[0][0].message.key)
+  t.deepEqual(mesg, JSON.parse(mockKafkaProducer.send.args[0][0].message.value))
+})
+
+//TODO queue send error retries
+test.only('queue kafka send error retries send', async t => {
+  const kafkaErrorResp = [
+    { topic: 'testTopic',
+      partition: -1,
+      error:
+       { name: 'KafkaError',
+         code: 'SomeErrorCode',
+         message: 'Some error message' },
+      offset: -1
+    }
+  ]
+  mockKafkaProducer.send.onCall(0).returns(Promise.resolve(kafkaErrorResp))
+  mockKafkaProducer.send.onCall(1).returns(Promise.resolve([ { topic: 'testTopic', partition: 0, error: null, offset: 1 } ]))
+
+  const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic', retryOptions: testRetryOptions})
+  kp.init()
+
+  await waitUntil(() => kp.getStatistics().kafkaReady)
+
+  const mesg = { foo: 'bar' }
+  kp.queue('key', mesg)
+
+console.log('a')
+  await waitUntil(() => kp.getStatistics().queueCnt > 0)
+  console.log('b')
+
+  await waitUntil(() => kp.getStatistics().sentCnt > 0) //TODO waiting here
+  console.log('c')
+
+  await waitUntil(() => mockKafkaProducer.send.args.length > 0)
+  console.log('d')
+
+
+  t.is('testTopic', mockKafkaProducer.send.args[0][0].topic)
+  t.deepEqual('key', mockKafkaProducer.send.args[0][0].message.key)
+  t.deepEqual(mesg, JSON.parse(mockKafkaProducer.send.args[0][0].message.value))
+})
+
 //TODO queue no defaultTopic
 //TODO queueMessages
 //TODO queueMessages no defaultTopic
@@ -46,17 +232,13 @@ function resetMockStubFunctions(mock) {
 //TODO validateValue
 //TODO handleQueued
 //TODO retry
+
 //TODO fallback
 //TODO kafka success
 //TODO kafka message too large
 //TODO kafka no topic
 //TODO kafka perpetual failure
 //TODO kafka failure, then recovery
-
-test('queue message', async t => {
-  await delay(1000)
-  t.is(true, true)
-})
 
 // success
 // [ { topic: 'test-topic', partition: 0, error: null, offset: 35 } ]

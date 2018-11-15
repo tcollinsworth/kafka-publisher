@@ -9,7 +9,7 @@
     "fallback"
   ],
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=8.0.0"
   },
   "scripts": {
     "watchInteg": "ava --fail-fast -v **/__integ-tests__/**/*test*.js --watch",
@@ -35,6 +35,7 @@
     "url": "git@github.com:tcollinsworth/kafka-publisher.git"
   },
   "devDependencies": {
+    "async-wait-until": "^1.2.4",
     "ava": "^0.16.0",
     "babel-cli": "^6.24.1",
     "babel-eslint": "^7.2.3",
