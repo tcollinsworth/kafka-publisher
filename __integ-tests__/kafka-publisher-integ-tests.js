@@ -1,6 +1,8 @@
 import { serial as test } from 'ava'
 // import sinon from 'sinon'
 import delay from 'delay'
+import uuidV4 from 'uuid/v4'
+import stringify from 'json-stringify-safe'
 
 import { KafkaPublisher } from '../index'
 
@@ -27,7 +29,7 @@ test('queue message', async (t) => {
   kp.init() // retries forever, await blocks till ready, not desirable for fallback
   await delay(1000)
   while (true) {
-    kp.queue('key', { foo: 'bar' }) // use defaultTopic
+    kp.queue('key', { foo: 'bar1' }) // use defaultTopic
     kp.queueMessages([
       { key: 'key1', value: { foo1: 'bar1' } },
       { key: 'key2', message: { foo2: 'bar2' } },

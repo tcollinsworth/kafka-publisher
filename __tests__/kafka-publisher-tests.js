@@ -2,6 +2,8 @@ import { serial as test } from 'ava'
 import sinon from 'sinon'
 import delay from 'delay'
 import waitUntil from 'async-wait-until'
+import stringify from 'json-stringify-safe'
+import lodash from 'lodash'
 
 import * as k from '../index'
 
@@ -185,8 +187,7 @@ test('happy queue and publishing to kafka', async t => {
   t.deepEqual(mesg, JSON.parse(mockKafkaProducer.send.args[0][0].message.value))
 })
 
-//TODO queue send error retries
-test.only('queue kafka send error retries send', async t => {
+test('queue kafka send error recovers and next send succeeds', async t => {
   const kafkaErrorResp = [
     { topic: 'testTopic',
       partition: -1,
@@ -198,7 +199,7 @@ test.only('queue kafka send error retries send', async t => {
     }
   ]
   mockKafkaProducer.send.onCall(0).returns(Promise.resolve(kafkaErrorResp))
-  mockKafkaProducer.send.onCall(1).returns(Promise.resolve([ { topic: 'testTopic', partition: 0, error: null, offset: 1 } ]))
+  mockKafkaProducer.send.returns(Promise.resolve([ { topic: 'testTopic', partition: 0, error: null, offset: 1 } ]))
 
   const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic', retryOptions: testRetryOptions})
   kp.init()
@@ -208,16 +209,26 @@ test.only('queue kafka send error retries send', async t => {
   const mesg = { foo: 'bar' }
   kp.queue('key', mesg)
 
-console.log('a')
+  t.is(0, mockFallbackPublisher.send.args.length)
+
   await waitUntil(() => kp.getStatistics().queueCnt > 0)
-  console.log('b')
+  await waitUntil(() => kp.getStatistics().kafkaReady)
+  await waitUntil(() => !kp.getStatistics().backgroundRetrying)
 
-  await waitUntil(() => kp.getStatistics().sentCnt > 0) //TODO waiting here
-  console.log('c')
+  const expectedFileSendMockArgs = [
+    {
+      topic: 'testTopic',
+      key: 'key',
+      value: mesg
+    }
+  ]
 
+  await waitUntil(() => lodash.isEqual(mockFallbackPublisher.send.args[0], expectedFileSendMockArgs))
+
+  kp.queue('key', mesg)
+
+  await waitUntil(() => kp.getStatistics().sentCnt > 0)
   await waitUntil(() => mockKafkaProducer.send.args.length > 0)
-  console.log('d')
-
 
   t.is('testTopic', mockKafkaProducer.send.args[0][0].topic)
   t.deepEqual('key', mockKafkaProducer.send.args[0][0].message.key)
@@ -228,17 +239,12 @@ console.log('a')
 //TODO queueMessages
 //TODO queueMessages no defaultTopic
 //TODO getStatistics, resetStatistics
-//TODO validateKey
-//TODO validateValue
 //TODO handleQueued
-//TODO retry
-
-//TODO fallback
-//TODO kafka success
+//TODO publishInternal
+//TODO kafkaSendBlocksWhileDownInternal
 //TODO kafka message too large
 //TODO kafka no topic
 //TODO kafka perpetual failure
-//TODO kafka failure, then recovery
 
 // success
 // [ { topic: 'test-topic', partition: 0, error: null, offset: 35 } ]
