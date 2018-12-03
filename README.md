@@ -72,7 +72,7 @@ kp.queueMessages(messageArray)
    * `init()` - initializes kafka, connecting to broker, returns promise, but should not await if utilizing fallback
    * `end()` - closes the kafka connection, return promise
    * `queue(key, message[, topic])` - queue a message for publishing to kafka, the defaultTopic will be used unless topic is provided
-   * `queueMessages([{key, message[, topic]}, ...])` - queue a messages for publishing to kafka, the defaultTopic will be used unless topic is provided
+   * `queueMessages([{key, message[, topic]}, ...])` - queue an array of messages for publishing to kafka, the defaultTopic will be used unless topic is provided
    * `getStatistics()` - gets all statistics, should be exposed via a REST endpoint
    * `resetStatistics()` - resets all statistics, should be exposed via a REST endpoint
 
