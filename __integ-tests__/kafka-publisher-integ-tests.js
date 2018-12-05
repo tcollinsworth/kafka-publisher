@@ -29,7 +29,22 @@ test('queue message', async (t) => {
   kp.init() // retries forever, await blocks till ready, not desirable for fallback
   await delay(1000)
   while (true) {
+    const foo = {
+      userId: 'userId'
+    }
+    const buf1 = new Buffer('test', 'utf8')
+    kp.queue(buf1, { foo: 'buf1' }) // use defaultTopic
+    kp.queue(buf1.toString(), { foo: 'buf1.toString()' }) // use defaultTopic
+
+    const buf2 = Buffer.from('test', 'utf8')
+    kp.queue(buf2, { foo: 'buf2' }) // use defaultTopic
+
+    //kp.queue('"key"', { foo: 'bar0' }) // use defaultTopic
     kp.queue('key', { foo: 'bar1' }) // use defaultTopic
+    kp.queue(uuidV4(), { foo: 'bar2' }) // use defaultTopic
+    kp.queue(uuidV4().toString(), { foo: 'bar3' }) // use defaultTopic
+    kp.queue(stringify(stringify(uuidV4())), { foo: 'bar4' }) // use defaultTopic
+    kp.queue(foo.userId, { foo: 'bar5' }) // use defaultTopic
     kp.queueMessages([
       { key: 'key1', value: { foo1: 'bar1' } },
       { key: 'key2', message: { foo2: 'bar2' } },

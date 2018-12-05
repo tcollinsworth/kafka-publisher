@@ -236,15 +236,16 @@ test('queue kafka send error recovers and next send succeeds', async t => {
 })
 
 //TODO queue no defaultTopic
-//TODO queueMessages
 //TODO queueMessages no defaultTopic
+
+
+//TODO queueMessages
 //TODO getStatistics, resetStatistics
 //TODO handleQueued
 //TODO publishInternal
 //TODO kafkaSendBlocksWhileDownInternal
 //TODO kafka message too large
-//TODO kafka no topic
-//TODO kafka perpetual failure
+//TODO kafka topic override, queue, queueMessages
 
 // success
 // [ { topic: 'test-topic', partition: 0, error: null, offset: 35 } ]

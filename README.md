@@ -24,7 +24,7 @@ Log and discard message if
 
 ## Requirements
 
-Node 10+
+Node 8+
 
 ## Getting started
 
