@@ -13,3 +13,5 @@ dist
 coverage
 
 fallback*.log
+
+*.npmrc

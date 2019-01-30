@@ -28,33 +28,35 @@ test('number returns number', t => {
 
 test('boolean throws error', t => {
   const error = t.throws(() => validateKey(true), Error)
-  t.is(error.message, 'key should be a number, string, or object, was boolean')
+  t.is(error.message, 'key should be a number or string, was boolean')
 })
 
 test('array returns stringified array', t => {
-  t.is('[]', validateKey([]))
+  const error = t.throws(() => validateKey([]), Error)
+  t.is(error.message, 'key should be a number or string, was object')
 })
 
 test('object returns stringified object', t => {
-  t.is('{}', validateKey({}))
+  const error = t.throws(() => validateKey({}), Error)
+  t.is(error.message, 'key should be a number or string, was object')
 })
 
 test('null throws error', t => {
   const error = t.throws(() => validateKey(null), Error)
-  t.is(error.message, 'key should be a number, string, or object, was object')
+  t.is(error.message, 'key should be a number or string, was object')
 })
 
 test('undefined throws error', t => {
   const error = t.throws(() => validateKey(undefined), Error)
-  t.is(error.message, 'key should be a number, string, or object, was undefined')
+  t.is(error.message, 'key should be a number or string, was undefined')
 })
 
 test('function throws error', t => {
   const error = t.throws(() => validateKey(() => {}), Error)
-  t.is(error.message, 'key should be a number, string, or object, was function')
+  t.is(error.message, 'key should be a number or string, was function')
 })
 
 test('symbol throws error', t => {
   const error = t.throws(() => validateKey(Symbol('foo')), Error)
-  t.is(error.message, 'key should be a number, string, or object, was symbol')
+  t.is(error.message, 'key should be a number or string, was symbol')
 })
