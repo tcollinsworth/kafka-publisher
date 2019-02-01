@@ -51,7 +51,7 @@ test('queue message', async (t) => {
     //   { key: 'key2', value: { foo2: 'bar2' } },
     // ]) // use defaultTopic
 
-    if (kp.queued() < 1000) {
+    if (kp.queued() < 40) {
     kp.queue(uuidV4(), {
        "corrId":"2db82d53-d238-4b8f-889a-19916497fcf9",
        "orgId":"f218de12-9565-4929-94ab-75fec8decc1c",
@@ -82,7 +82,7 @@ test('queue message', async (t) => {
     ++cnt;
     console.log(cnt, 'q', kp.queued())
   } else {
-    while (kp.queued() > 500) {
+    while (kp.queued() > 10) {
       await delay(1000)
       console.log(cnt, 'q', kp.queued())
     }
