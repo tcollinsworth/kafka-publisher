@@ -33,6 +33,33 @@ produce error 1 TypeError: "topic" must be a string
 
 ========================================================================================================================================
 
+produce error 184 {"message":"Local: Erroneous state","code":-172,"errno":-172,"origin":"kafka"}
+
+========================================================================================================================================
+
+...
+send conn true 1402
+cb null 1402
+send conn true 1403
+Mon, 04 Feb 2019 04:32:49 GMT kafka-publisher:error event.error {"origin":"local","message":"broker transport failure","code":-1,"errno":-1,"stack":"Error: Local: Broker transport failure"}
+Mon, 04 Feb 2019 04:32:49 GMT kafka-publisher:error event.error {"origin":"local","message":"broker transport failure","code":-1,"errno":-1,"stack":"Error: Local: Broker transport failure"}
+Mon, 04 Feb 2019 04:32:49 GMT kafka-publisher:error event.error {"origin":"local","message":"all broker connections are down","code":-1,"errno":-1,"stack":"Error: Local: All broker connections are down"}
+cb null 1403
+send conn true 1404
+Mon, 04 Feb 2019 04:32:49 GMT kafka-publisher:error event.error {"origin":"local","message":"broker transport failure","code":-1,"errno":-1,"stack":"Error: Local: Broker transport failure"}
+Mon, 04 Feb 2019 04:32:49 GMT kafka-publisher:error event.error {"origin":"local","message":"broker transport failure","code":-1,"errno":-1,"stack":"Error: Local: Broker transport failure"}
+timeout 1404
+send conn true 1405
+produce error 1405 {"message":"Local: Unknown topic","code":-188,"errno":-188,"origin":"kafka"}
+timeout 1405
+send conn true 1406
+cb null 1406
+send conn true 1407
+cb null 1407
+...
+
+========================================================================================================================================
+
 Sun, 03 Feb 2019 20:51:58 GMT kafka-publisher:warn connectionString deprecated, switch to options.producer['metadata.broker.list']
 { 'message.timeout.ms': 10000,
   dr_cb: true,
