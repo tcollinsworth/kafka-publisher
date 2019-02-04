@@ -36,11 +36,11 @@ test('queue message', async (t) => {
   setInterval(() => {
     try {
       if (connected) {
-        console.log('disconnect')
+        console.log('start disconnecting')
         kp.end()
         connected = false
       } else {
-        console.log('connect')
+        console.log('start connecting')
         kp.connect()
         connected = true
       }
@@ -51,7 +51,7 @@ test('queue message', async (t) => {
   }, 30000)
   while (true) {
     //if (kp.pending() > 100) console.log('kp.pending', kp.pending())
-    while (kp.pending() > 1000) {
+    while (kp.pending() > 0) {
       await delay(1)
     }
     _send()
@@ -108,14 +108,27 @@ test('queue message', async (t) => {
   // console.log(kp.getStatistics())
 })
 
+function getTooLargeMesg() {
+  const tmpMsg = lodash.cloneDeep(mesgValue)
+
+  tmpMsg.foo = []
+  for (let i = 0; i< 5000; i++) {
+    tmpMsg.foo.push(lodash.cloneDeep(mesgValue))
+  }
+
+  return tmpMsg
+}
+
 async function _send() {
-  if (++cnt % 10000 == 0) console.log('send conn', connected, cnt)
+  if (++cnt % 1 == 0) console.log('send conn', connected, cnt)
   const res = await send(uuidV4(), mesgValue, cb)
-  poll()
+  //const res = await send(uuidV4(), getTooLargeMesg(), cb)
+  //poll()
 }
 
 async function cb(error, deliveryReport) {
-  if (cnt % 10000 == 0) console.log('cb', error, deliveryReport)
+  if (cnt % 1 == 0) console.log('cb', error, deliveryReport.opaque)
+  // if (cnt % 1 == 0) console.log('cb', error, deliveryReport)
   //await _send()
 }
 
