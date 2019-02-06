@@ -12,7 +12,7 @@
     "node": ">=8.0.0"
   },
   "scripts": {
-    "watchInteg": "NODE_ENV=PRODUCTION ava --fail-fast -v **/__integ-tests__/**/*test*.js --watch",
+    "watchInteg": "NODE_ENV=DEBUG ava --fail-fast -v **/__integ-tests__/**/*test*.js --watch",
     "watchUnit": "NODE_ENV=DEBUG ava --fail-fast -v **/__tests__/**/*test*.js --watch",
     "coverage": "nyc ava",
     "coverageDetail": "nyc --reporter=html --reporter=text ava",
