@@ -23,7 +23,7 @@ function createKp(t) {
 
 test.afterEach.always(async () => {
   if (kp != null) {
-    await kp.end()
+    await kp.shutdown()
   }
 })
 
@@ -37,7 +37,7 @@ test('queue message', async (t) => {
     try {
       if (connected) {
         console.log('start disconnecting')
-        kp.end()
+        kp.shutdown()
         connected = false
       } else {
         console.log('start connecting')
