@@ -120,7 +120,7 @@ function getTooLargeMesg() {
 }
 
 async function _send() {
-  if (++cnt % 1 == 0) console.log('send conn', connected, cnt)
+  if (++cnt % 1 == 0) console.log('send conn', connected, 'cnt', cnt, 'consecErrCnt', kp.getStatistics().consecutiveErrorCnt)
   const res = await send(uuidV4(), mesgValue, cb)
   //const res = await send(uuidV4(), getTooLargeMesg(), cb)
   //poll()
