@@ -54,7 +54,8 @@ test('queue message', async (t) => {
     while (kp.pending() > 0) {
       await delay(1)
     }
-    _send()
+    await _send()
+    await delay(1000)
   }
   // while (true) {
     // const foo = {
@@ -120,7 +121,7 @@ function getTooLargeMesg() {
 }
 
 async function _send() {
-  if (++cnt % 1 == 0) console.log('send conn', connected, 'cnt', cnt, 'consecErrCnt', kp.getStatistics().consecutiveErrorCnt)
+  if (++cnt % 1 == 0) console.log('send conn', connected, 'cnt', cnt, 'consecErrCnt', kp.getStatistics().consecutiveKafkaErrorCnt)
   const res = await send(uuidV4(), mesgValue, cb)
   //const res = await send(uuidV4(), getTooLargeMesg(), cb)
   //poll()
@@ -133,10 +134,12 @@ async function cb(error, deliveryReport) {
 }
 
 async function send(key, value, cb) {
-  return new Promise((resolve) => {
-    kp.queue(key, value, undefined, cb)
-    resolve()
-  })
+  try {
+    await kp.queue(key, value, undefined, cb)
+  } catch (err) {
+    console.log(err)
+    await delay(1000)
+  }
 }
 
 function poll() {
