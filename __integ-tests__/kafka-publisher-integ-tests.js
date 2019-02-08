@@ -122,32 +122,20 @@ function getTooLargeMesg() {
 
 async function _send() {
   if (++cnt % 1 == 0) console.log('send conn', connected, 'cnt', cnt, 'consecErrCnt', kp.getStatistics().consecutiveKafkaErrorCnt)
-  const res = await send(uuidV4(), mesgValue, cb)
-  //const res = await send(uuidV4(), getTooLargeMesg(), cb)
-  //poll()
+
+  try {
+    const deliveryReport = await kp.queue(uuidV4(), mesgValue)
+    //const deliveryReport = await kp.queue(uuidV4(), getTooLargeMesg())
+    cb(null, deliveryReport)
+  } catch (err) {
+    cb(err)
+  }
 }
 
 async function cb(error, deliveryReport) {
-  if (cnt % 1 == 0) console.log('cb', error, deliveryReport.opaque)
+  if (cnt % 1 == 0) console.log('cb dr', deliveryReport == null ? null : deliveryReport.opaque, error)
   // if (cnt % 1 == 0) console.log('cb', error, deliveryReport)
   //await _send()
-}
-
-async function send(key, value, cb) {
-  try {
-    await kp.queue(key, value, undefined, cb)
-  } catch (err) {
-    console.log(err)
-    await delay(1000)
-  }
-}
-
-function poll() {
-  try {
-    kp.poll()
-  } catch (err) {
-    console.log('poll', err)
-  }
 }
 
 const mesgValue = {
