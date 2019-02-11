@@ -13,7 +13,7 @@ const testRetryOptions = {
   forever: true, // use this instead of retries or it will create a lookup table for all retries wasting cycles and memory
   factor: 2,
   minTimeout: 1, // 1 sec
-  maxTimeout: 10, // 10 sec
+  maxTimeout: 1, // 10 sec
   randomize: true,
 }
 
@@ -26,11 +26,15 @@ const mockKafkaProducer = {
   shutdown: sinon.stub(),
   setPollInterval: sinon.stub(),
   on: sinon.stub(),
+  connect: sinon.stub(),
+  disconnect: sinon.stub(),
+  produce: sinon.stub(),
 }
 
 const mockFallbackPublisher = {
   getStatistics: sinon.stub(),
   publish: sinon.stub(),
+  readyEvent: sinon.stub(),
 }
 
 k.kafka.initKafkaProducer = function(options) {
@@ -153,124 +157,129 @@ test('happy init', async t => {
   const kp = new k.KafkaPublisher({connectionString: 'foo'})
   kp.init()
 
+  // on ready
+  mockKafkaProducer.on.args[1][1]()
+
   await waitUntil(() => kp.getStatistics().kafkaReady)
-  t.is(1, mockKafkaProducer.init.args.length)
+  t.truthy(mockFallbackPublisher.readyEvent.called)
+  t.truthy(mockKafkaProducer.disconnect.calledBefore(mockKafkaProducer.connect))
+  t.truthy(mockKafkaProducer.connect.called)
+
+  t.is(k.defaultOptions.producerPollIntervalMs, mockKafkaProducer.setPollInterval.args[0][0])
+  t.is(5, mockKafkaProducer.on.args.length)
 })
 
 test('one error, happy init', async t => {
-  mockKafkaProducer.init.onCall(0).returns(Promise.reject(new Error('test')))
-
-  const kp = new k.KafkaPublisher({connectionString: 'foo', retryOptions: testRetryOptions})
+  const kp = new k.KafkaPublisher({connectionString: 'foo', kafkaReadyOrErrorOrTimeoutMs: 1000, retryOptions: testRetryOptions})
   kp.init()
+  await delay(10)
+
+  // on event.error
+  mockKafkaProducer.on.args[2][1](new Error('test'))
+  await delay(10)
+
+  // on ready
+  mockKafkaProducer.on.args[1][1]()
 
   await waitUntil(() => kp.getStatistics().kafkaReady)
-  await waitUntil(() => mockKafkaProducer.init.args.length > 1)
-  t.is(2, mockKafkaProducer.init.args.length)
-  t.is('test', kp.getStatistics().lastError)
-  t.truthy(kp.getStatistics().lastErrorTs)
+
+  t.truthy(kp.getStatistics().kafkaReady)
+  t.is(1, kp.getStatistics().kafkaEventErrorCnt)
 })
 
-test('happy end', async t => {
-  const kp = new k.KafkaPublisher({connectionString: 'foo'})
-  kp.end()
+test('one error, happy init', async t => {
+  mockKafkaProducer.connect.onCall(0).throws(new Error('test'))
 
-  await waitUntil(() => mockKafkaProducer.end.args.length > 0)
+  const kp = new k.KafkaPublisher({connectionString: 'foo', kafkaReadyOrErrorOrTimeoutMs: 1000, retryOptions: testRetryOptions})
+  kp.init()
+  await delay(10)
+
+  // on ready
+  mockKafkaProducer.on.args[1][1]()
+
+  await waitUntil(() => kp.getStatistics().kafkaReady)
+
+  t.truthy(kp.getStatistics().kafkaReady)
+  t.is(0, kp.getStatistics().kafkaEventErrorCnt)
+})
+
+test('happy shutdown', async t => {
+  const kp = new k.KafkaPublisher({connectionString: 'foo'})
+  kp.shutdown()
+
+  await waitUntil(() => mockKafkaProducer.disconnect.args.length > 0)
 })
 
 test('happy queue and publishing to kafka', async t => {
-  mockKafkaProducer.send.onCall(0).returns(Promise.resolve([ { topic: 'testTopic', partition: 0, error: null, offset: 1 } ]))
+  mockKafkaProducer.produce.onCall(0).returns(true)
 
   const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic',})
   kp.init()
+  await delay(10)
+
+  // on ready
+  mockKafkaProducer.on.args[1][1]()
 
   await waitUntil(() => kp.getStatistics().kafkaReady)
 
   const mesg = { foo: 'bar' }
   kp.queue('key', mesg)
 
+  await waitUntil(() => kp.getStatistics().mesgCnt > 0)
   await waitUntil(() => kp.getStatistics().queueCnt > 0)
-  await waitUntil(() => kp.getStatistics().sentCnt > 0)
-  await waitUntil(() => mockKafkaProducer.send.args.length > 0)
 
-  t.is('testTopic', mockKafkaProducer.send.args[0][0].topic)
-  t.deepEqual('key', mockKafkaProducer.send.args[0][0].message.key)
-  t.deepEqual(mesg, JSON.parse(mockKafkaProducer.send.args[0][0].message.value))
+  t.is('testTopic', mockKafkaProducer.produce.args[0][0])
+  t.falsy(mockKafkaProducer.produce.args[0][1])
+  t.deepEqual(mesg, JSON.parse(mockKafkaProducer.produce.args[0][2].toString()))
+  t.deepEqual('key', mockKafkaProducer.produce.args[0][3])
+  t.deepEqual(1, mockKafkaProducer.produce.args[0][5])
 })
 
-test('queue kafka send error recovers and next send succeeds', async t => {
-  const kafkaErrorResp = [
-    { topic: 'testTopic',
-      partition: -1,
-      error:
-       { name: 'KafkaError',
-         code: 'SomeErrorCode',
-         message: 'Some error message' },
-      offset: -1
-    }
-  ]
-  mockKafkaProducer.send.onCall(0).returns(Promise.resolve(kafkaErrorResp))
-  mockKafkaProducer.send.returns(Promise.resolve([ { topic: 'testTopic', partition: 0, error: null, offset: 1 } ]))
+test('queue kafka send error fallsback and next send succeeds', async t => {
+  mockKafkaProducer.produce.onCall(0).returns(false)
+  mockKafkaProducer.produce.onCall(1).returns(true)
 
-  const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic', retryOptions: testRetryOptions})
+  const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic',})
   kp.init()
+  await delay(10)
+
+  // on ready
+  mockKafkaProducer.on.args[1][1]()
 
   await waitUntil(() => kp.getStatistics().kafkaReady)
 
-  const mesg = { foo: 'bar' }
-  kp.queue('key', mesg)
+  const mesg1 = { foo: 'bar1' }
+  kp.queue('key1', mesg1)
+  const mesg2 = { foo: 'bar2' }
+  kp.queue('key2', mesg2)
 
-  t.is(0, mockFallbackPublisher.send.args.length)
-
+  await waitUntil(() => kp.getStatistics().mesgCnt > 1)
+  await waitUntil(() => kp.getStatistics().ackErrorCnt > 0)
   await waitUntil(() => kp.getStatistics().queueCnt > 0)
-  await waitUntil(() => kp.getStatistics().kafkaReady)
-  await waitUntil(() => !kp.getStatistics().backgroundRetrying)
+
+  t.is(0, kp.getStatistics().ackSuccessCnt)
+
+  t.is(1, mockFallbackPublisher.publish.args.length)
 
   const expectedFileSendMockArgs = [
     {
       topic: 'testTopic',
-      key: 'key',
-      value: mesg
+      mesgValue: stringify(mesg1)
     }
   ]
 
-  await waitUntil(() => lodash.isEqual(mockFallbackPublisher.send.args[0], expectedFileSendMockArgs))
+  await waitUntil(() => lodash.isEqual(mockFallbackPublisher.publish.args[0], expectedFileSendMockArgs))
 
-  kp.queue('key', mesg)
-
-  await waitUntil(() => kp.getStatistics().sentCnt > 0)
-  await waitUntil(() => mockKafkaProducer.send.args.length > 0)
-
-  t.is('testTopic', mockKafkaProducer.send.args[0][0].topic)
-  t.deepEqual('key', mockKafkaProducer.send.args[0][0].message.key)
-  t.deepEqual(mesg, JSON.parse(mockKafkaProducer.send.args[0][0].message.value))
+  t.is('testTopic', mockKafkaProducer.produce.args[1][0])
+  t.falsy(mockKafkaProducer.produce.args[1][1])
+  t.deepEqual(mesg2, JSON.parse(mockKafkaProducer.produce.args[1][2].toString()))
+  t.deepEqual('key2', mockKafkaProducer.produce.args[1][3])
+  t.deepEqual(2, mockKafkaProducer.produce.args[1][5])
 })
 
 //TODO queue no defaultTopic
-//TODO queueMessages no defaultTopic
-
-
-//TODO queueMessages
-//TODO getStatistics, resetStatistics
-//TODO handleQueued
 //TODO publishInternal
-//TODO kafkaSendBlocksWhileDownInternal
+//TODO kafkaSendFallsbackWhileDownInternal
 //TODO kafka message too large
-//TODO kafka topic override, queue, queueMessages
-
-// success
-// [ { topic: 'test-topic', partition: 0, error: null, offset: 35 } ]
-
-// error message
-// [ { topic: 'Provisioning-Audits',
-//     partition: -1,
-//     error:
-//      { [KafkaError: This request is for a topic or partition that does not exist on this broker.]
-//        name: 'KafkaError',
-//        code: 'UnknownTopicOrPartition',
-//        message: 'This request is for a topic or partition that does not exist on this broker.' },
-//     offset: -1 } ]
-
-// { [KafkaError: The server has a configurable maximum message size to avoid unbounded memory allocation. This error is thrown if the client attempt to produce a message larger than this maximum.]
-//   name: 'KafkaError',
-//   code: 'MessageSizeTooLarge',
-//   message: 'The server has a configurable maximum message size to avoid unbounded memory allocation. This error is thrown if the client attempt to produce a message larger than this maximum.' } }
+//TODO kafka topic override
+//TODO getStatistics, resetStatistics

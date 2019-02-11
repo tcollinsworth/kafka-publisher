@@ -51,11 +51,11 @@ test('queue message', async (t) => {
   }, 30000)
   while (true) {
     //if (kp.pending() > 100) console.log('kp.pending', kp.pending())
-    while (kp.pending() > 10) {
+    while (kp.pending() > 0) {
       await delay(100)
     }
     await _send()
-    await delay(10)
+    await delay(500)
   }
 })
 
@@ -73,13 +73,8 @@ function getTooLargeMesg() {
 async function _send() {
   if (++cnt % 1 == 0) console.log('send conn', connected, 'cnt', cnt, 'consecErrCnt', kp.getStatistics().consecutiveKafkaErrorCnt)
 
-  try {
-    const deliveryReport = await kp.queue(uuidV4(), mesgValue)
-    //const deliveryReport = await kp.queue(uuidV4(), getTooLargeMesg())
-    cb(null, deliveryReport)
-  } catch (err) {
-    cb(err)
-  }
+  kp.queue(uuidV4(), mesgValue, null, cb)
+  //kp.queue(uuidV4(), getTooLargeMesg(), null, cb)
 }
 
 async function cb(error, deliveryReport) {
