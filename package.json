@@ -1,6 +1,6 @@
 {
   "name": "kafka-publisher",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
   "main": "kafka-publisher.js",
   "keywords": [
@@ -58,6 +58,7 @@
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
+    "moment": "^2.24.0",
     "node-rdkafka": "^2.5.1",
     "pino": "^5.11.1",
     "pino-pretty": "^2.5.0",

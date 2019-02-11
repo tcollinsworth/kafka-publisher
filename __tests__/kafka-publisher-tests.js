@@ -23,12 +23,14 @@ let fallbackOptions
 const mockKafkaProducer = {
   send: sinon.stub(),
   init: sinon.stub(),
-  end: sinon.stub(),
+  shutdown: sinon.stub(),
+  setPollInterval: sinon.stub(),
+  on: sinon.stub(),
 }
 
 const mockFallbackPublisher = {
   getStatistics: sinon.stub(),
-  send: sinon.stub(),
+  publish: sinon.stub(),
 }
 
 k.kafka.initKafkaProducer = function(options) {
@@ -67,9 +69,25 @@ function resetMockStubFunctions(mock) {
 
 test('happy constructor and options', async t => {
   const options = {
+    connectionString: 'testConnString',
+
     // producer
     defaultTopic: 'testTopic',
-    requiredAcks: 1,
+
+    producer: {
+      'message.timeout.ms': 10101,
+      dr_cb: false,
+      event_cb: false,
+    },
+
+    producerPollIntervalMs: 55,
+
+    // consecutive error threshold till reconnect is initiated
+    // cleared on successful delivery report (kafka ack) and on transition to kafka ready
+    consecutiveKafkaErrorCntReconnectThreshold: 11,
+    kafkaReadyOrErrorOrTimeoutMs: 60001, // 1 min
+    kafkaReadyOrErrorOrTimeoutPollMs: 101, // 100 ms
+
     retries: {
       attempts: 2,
       delay: {
@@ -77,33 +95,20 @@ test('happy constructor and options', async t => {
         max: 3333,
       },
     },
-    batch: {
-      size: 4,
-      maxWait: 444,
-    },
 
-    // client
-    clientId: 'testClient',
-    connectionString: 'testConnString',
-    reconnectionDelay: {
-      min: 5,
-      max: 555,
-    },
-
-    // init retry options
     retryOptions: {
-      retries: 6,
-      forever: false,
-      factor: 7,
-      minTimeout: 77,
-      maxTimeout: 777,
+      retries: 2, // not strictly required, however disables creating default retry table
+      forever: false, // use this instead of retries or it will create a lookup table for all retries wasting cycles and memory
+      factor: 1,
+      minTimeout: 1001, // 1 sec
+      maxTimeout: 10002, // 10 sec
       randomize: false,
     },
 
     // fallback defaults - where to write to filesystem
     fallback: {
+      enabled: true,
       directory: 'kafkaFallbackLogs',
-      ownershipTimeoutMs: 8,
       retryOptions: {
         retries: 9,
         factor: 1,
@@ -115,8 +120,13 @@ test('happy constructor and options', async t => {
   }
   const kp = new k.KafkaPublisher(options)
 
-  t.deepEqual(options, kafkaOptions)
-  t.deepEqual(options.fallback, fallbackOptions)
+  t.deepEqual(options.producer, kafkaOptions)
+
+  t.truthy(fallbackOptions.instanceId)
+  const expectedOptions = lodash.cloneDeep(fallbackOptions)
+  delete expectedOptions.instanceId
+
+  t.deepEqual(options.fallback, expectedOptions)
 })
 
 test('constructor options undefined connectionString throws error', async t => {

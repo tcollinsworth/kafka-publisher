@@ -51,62 +51,12 @@ test('queue message', async (t) => {
   }, 30000)
   while (true) {
     //if (kp.pending() > 100) console.log('kp.pending', kp.pending())
-    while (kp.pending() > 0) {
-      await delay(1)
+    while (kp.pending() > 10) {
+      await delay(100)
     }
     await _send()
-    await delay(1000)
+    await delay(10)
   }
-  // while (true) {
-    // const foo = {
-    //   userId: 'userId'
-    // }
-    // const buf1 = new Buffer('test', 'utf8')
-    // //kp.queue(buf1, { foo: 'buf1' }) // use defaultTopic
-    // kp.queue(buf1.toString(), { foo: 'buf1.toString()' }) // use defaultTopic
-    //
-    // //const buf2 = Buffer.from('test', 'utf8')
-    // //kp.queue(buf2, { foo: 'buf2' }) // use defaultTopic
-    //
-    // //kp.queue('"key"', { foo: 'bar0' }) // use defaultTopic
-    // kp.queue('key', { foo: 'bar1' }) // use defaultTopic
-    // kp.queue(uuidV4(), { foo: 'bar2' }) // use defaultTopic
-    // kp.queue(uuidV4().toString(), { foo: 'bar3' }) // use defaultTopic
-    // // kp.queue(stringify(stringify(uuidV4())), { foo: 'bar4' }) // use defaultTopic
-    // kp.queue(foo.userId, { foo: 'bar5' }) // use defaultTopic
-    // kp.queueMessages([
-    //   { key: 'key1', value: { foo1: 'bar1' } },
-    //   { key: 'key2', value: { foo2: 'bar2' } },
-    // ]) // use defaultTopic
-
-    // const tmpMsg = lodash.cloneDeep(mesgValue)
-    //
-    // tmpMsg.foo = []
-    // for (let i = 0; i< 5000; i++) {
-    //   tmpMsg.foo.push(lodash.cloneDeep(mesgValue))
-    // }
-
-    // if (cnt % 1000 == 0) console.log('send conn', connected, ++cnt)
-    // kp.queue(uuidV4(), mesgValue) // use defaultTopic
-    // if (++cnt % 1 == 0) console.log(++cnt)
-    // const res = await send(uuidV4(), mesgValue, cb)
-    // poll()
-
-    // await delay(1)
-
-    //await delay(500)
-    // if (cnt % 10000 == 0) console.log(cnt, kp.getStatistics())
-    //console.log(kp.getStatistics())
-    // await delay(10)
-    // console.log(cnt, 'q', kp.queued())
-    //console.log('awaiting 10 min for connection timeout')
-    //await delay(600000)
-  // }
-  // await delay(1000)
-  // kp.queue('key', {foo: 'bar'}) // use defaultTopic
-  // t.is(1, kp.queued())
-  // await delay(1000)
-  // console.log(kp.getStatistics())
 })
 
 function getTooLargeMesg() {
@@ -133,8 +83,7 @@ async function _send() {
 }
 
 async function cb(error, deliveryReport) {
-  if (cnt % 1 == 0) console.log('cb dr', deliveryReport == null ? null : deliveryReport.opaque, error)
-  // if (cnt % 1 == 0) console.log('cb', error, deliveryReport)
+  if (cnt % 1 == 0) console.log('cb dr', deliveryReport == null ? null : deliveryReport.opaque, error.message)
   //await _send()
 }
 
