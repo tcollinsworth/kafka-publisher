@@ -1,6 +1,6 @@
 {
   "name": "kafka-publisher",
-  "version": "0.2.7",
+  "version": "0.3.1",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
   "main": "kafka-publisher.js",
   "keywords": [
@@ -12,8 +12,8 @@
     "node": ">=8.0.0"
   },
   "scripts": {
-    "watchInteg": "ava --fail-fast -v **/__integ-tests__/**/*test*.js --watch",
-    "watchUnit": "DEBUG=kafka* ava --fail-fast -v **/__tests__/**/*test*.js --watch",
+    "watchInteg": "NODE_ENV=DEBUG ava --fail-fast -v **/__integ-tests__/**/*test*.js --watch",
+    "watchUnit": "NODE_ENV=DEBUG ava --fail-fast -v **/__tests__/**/*test*.js --watch",
     "coverage": "nyc ava",
     "coverageDetail": "nyc --reporter=html --reporter=text ava",
     "ava": "ava",
@@ -42,7 +42,6 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.5.2",
     "babel-register": "^6.24.1",
-    "delay": "^4.1.0",
     "eslint": "^3.19.0",
     "eslint-config-airbnb-base": "^11.2.0",
     "eslint-plugin-import": "^2.6.0",
@@ -54,11 +53,15 @@
   "dependencies": {
     "babel-polyfill": "^6.23.0",
     "debug": "^2.6.8",
+    "delay": "^4.1.0",
     "esm": "^3.0.84",
     "json-stringify-safe": "^5.0.1",
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
-    "no-kafka": "^3.3.3",
+    "moment": "^2.24.0",
+    "node-rdkafka": "^2.5.1",
+    "pino": "^5.11.1",
+    "pino-pretty": "^2.5.0",
     "promise-retry": "^1.1.1",
     "promise-timeout": "^1.3.0",
     "stdout-stream": "^1.4.0",
