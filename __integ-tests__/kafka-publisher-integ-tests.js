@@ -16,14 +16,21 @@ let connected = false
 // })
 
 function createKp(t) {
-  kp = new KafkaPublisher({ connectionString: '127.0.0.12:9092', defaultTopic: 'test-topic' })
+  kp = new KafkaPublisher({
+    connectionString: '127.0.0.12:9092',
+    defaultTopic: 'test-topic',
+    kafkaReadyOrErrorOrTimeoutMs: 5000,
+    logging: {
+      level: 'info', //'debug',
+    }
+  })
   t.not(null, kp)
   //t.is(0, kp.queued())
 }
 
 test.afterEach.always(async () => {
   if (kp != null) {
-    await kp.shutdown()
+    kp.shutdown()
   }
 })
 
@@ -33,22 +40,22 @@ test('queue message', async (t) => {
   connected = true
   await delay(3000)
   cnt = 0;
-  setInterval(() => {
-    try {
-      if (connected) {
-        console.log('start disconnecting')
-        kp.shutdown()
-        connected = false
-      } else {
-        console.log('start connecting')
-        kp.connect()
-        connected = true
-      }
-    } catch (err) {
-      console.log('Error', connected, err)
-    }
-
-  }, 30000)
+  // setInterval(() => {
+  //   try {
+  //     if (connected) {
+  //       console.log('start disconnecting')
+  //       kp.shutdown()
+  //       connected = false
+  //     } else {
+  //       console.log('start connecting')
+  //       kp.connect()
+  //       connected = true
+  //     }
+  //   } catch (err) {
+  //     console.log('Error', connected, err)
+  //   }
+  //
+  // }, 30000)
   while (true) {
     //if (kp.pending() > 100) console.log('kp.pending', kp.pending())
     while (kp.pending() > 0) {

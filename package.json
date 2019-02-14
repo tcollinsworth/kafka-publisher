@@ -1,6 +1,6 @@
 {
-  "name": "kafka-publisher-ss",
-  "version": "0.3.2",
+  "name": "kafka-publisher",
+  "version": "0.3.3",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
   "main": "kafka-publisher.js",
   "keywords": [
@@ -52,7 +52,6 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",
-    "debug": "^2.6.8",
     "delay": "^4.1.0",
     "esm": "^3.0.84",
     "json-stringify-safe": "^5.0.1",

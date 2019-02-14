@@ -4,8 +4,9 @@ while true; do
   killCleanupRestart.sh
   sleep 1m
   killKafka.sh
-  sleep 1m
+  sleep 10s
   startKafka.sh
   sleep 1m
   rm ../../__integ-tests__/kafkaFallbackLogs/*.log
+  sleep 1s
 done
