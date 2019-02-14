@@ -154,13 +154,17 @@ test('constructor options undefined throws error', async t => {
 })
 
 test('happy init', async t => {
+  mockKafkaProducer.disconnect.onCall(0).callsArg(0)
   const kp = new k.KafkaPublisher({connectionString: 'foo'})
   kp.init()
 
   // on ready
   mockKafkaProducer.on.args[1][1]()
 
+  await waitUntil(() => mockKafkaProducer.disconnect.called)
+  await waitUntil(() => mockKafkaProducer.connect.called)
   await waitUntil(() => kp.getStatistics().kafkaReady)
+
   t.truthy(mockFallbackPublisher.readyEvent.called)
   t.truthy(mockKafkaProducer.disconnect.calledBefore(mockKafkaProducer.connect))
   t.truthy(mockKafkaProducer.connect.called)
