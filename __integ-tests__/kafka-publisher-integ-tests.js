@@ -22,7 +22,10 @@ function createKp(t) {
     kafkaReadyOrErrorOrTimeoutMs: 5000,
     logging: {
       level: 'info', //'debug',
-    }
+    },
+    fallback: {
+      enabled: false,
+    },
   })
   t.not(null, kp)
   //t.is(0, kp.queued())
@@ -62,7 +65,7 @@ test('queue message', async (t) => {
       await delay(100)
     }
     await _send()
-    await delay(500)
+    await delay(1000)
   }
 })
 
