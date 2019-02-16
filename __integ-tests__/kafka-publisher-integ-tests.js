@@ -20,11 +20,14 @@ function createKp(t) {
     connectionString: '127.0.0.12:9092',
     defaultTopic: 'test-topic',
     kafkaReadyOrErrorOrTimeoutMs: 5000,
+    // producer: {
+    //   'message.timeout.ms': 1
+    // },
     logging: {
       level: 'info', //'debug',
     },
     fallback: {
-      enabled: false,
+      //enabled: false,
     },
   })
   t.not(null, kp)

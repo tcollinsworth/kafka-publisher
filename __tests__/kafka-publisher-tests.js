@@ -34,6 +34,8 @@ const mockKafkaProducer = {
 const mockFallbackPublisher = {
   getStatistics: sinon.stub(),
   publish: sinon.stub(),
+  publishOrphanedAck: sinon.stub(),
+  publishMesgTooLarge: sinon.stub(),
   readyEvent: sinon.stub(),
 }
 
@@ -268,7 +270,8 @@ test('queue kafka send error fallsback and next send succeeds', async t => {
   const expectedFileSendMockArgs = [
     {
       topic: 'testTopic',
-      mesgValue: stringify(mesg1)
+      mesgValue: stringify(mesg1),
+      ackKey: 1
     }
   ]
 
@@ -286,4 +289,5 @@ test('queue kafka send error fallsback and next send succeeds', async t => {
 //TODO kafkaSendFallsbackWhileDownInternal
 //TODO kafka message too large
 //TODO kafka topic override
+//TODO publish timedout, kafka deliveryReport orphaned
 //TODO getStatistics, resetStatistics
