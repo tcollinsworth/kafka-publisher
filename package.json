@@ -1,6 +1,6 @@
 {
   "name": "kafka-publisher",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
   "main": "kafka-publisher.js",
   "keywords": [
@@ -21,6 +21,7 @@
     "build": "babel lib --presets babel-preset-es2015 --out-dir dist",
     "prepublish": "npm run build",
     "start": "nodemon --exec babel-node lib/logging.js",
+    "kafkaParitionerInteg": "ava --serial --fail-fast -v __integ-tests__/kafka-publisher-integ-tests.js",
     "lint": "eslint . --ext=js --ignore-pattern '**/__tests__' --ignore-pattern '**/__integ-tests__' --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix",
     "watchLint": "esw . --ext=js --ignore-pattern '**/__tests__' --ignore-pattern '**/__integ-tests__' --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix --watch"
   },
@@ -58,6 +59,7 @@
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
     "moment": "^2.24.0",
+    "murmur2-partitioner": "^1.0.0",
     "node-rdkafka": "^2.5.1",
     "pino": "^5.11.1",
     "pino-pretty": "^2.4.2",

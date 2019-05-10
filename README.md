@@ -1,8 +1,8 @@
 # KafkaPublisher
 
-Intentionally best-effort publishing.
+Intentionally best-effort publishing - but tries really hard not to lose messages.
 Possible to lose or duplicate a message on crash or error.
-If kafka errors or is unavailable, writes messages to the filesystem until kafka available again.
+If kafka errors or is unavailable, falls back to writing messages to the filesystem until kafka available again.
 
 Queues messages in memory.
 Worker attempts to publish to kafka topic with fixed retries.
@@ -10,6 +10,13 @@ When kafka publish retries exhausted, switch to writing messages to filesystem u
 Tries to write to filesystem with limited retries before logging error and discarding.
 Periodically retries connecting to kafka in background.
 When successful, immediately switches back to publishing to kafka.
+
+Partitioning:
+
+The node-rdkafka lib, or more correctly librdkafka does not compute partitions from key exactly the same as
+kafka-console-publisher kafka/utils.partitioner, murmur2-partitioner, or no-kafka libs, see [issue](https://github.com/Blizzard/node-rdkafka/issues/616).
+This library currently utilizes the murmur2-partitioner library to specify the partition overriding the
+librdkafka partitioner when a key is specified on publish.
 
 Future:
 
@@ -79,7 +86,7 @@ For example NFS on kubernetes/openshift or Amazon Web Services EFS https://aws.a
 
 
 ```javascript
-const defaultOptions = const defaultOptions = {
+const defaultOptions = {
   // deprecated, legacy, from prior no-kafka config
   connectionString: 'FIXME', // default process.env.KAFKA_URL || '27.0.0.1:9092',
 
