@@ -44,11 +44,12 @@ test('test partitioning', async t => {
   createKp(t)
   kp.init() // retries forever, await blocks till ready, not desirable for fallback
   await delay(3000)
+  //partition 0 of 10
+  kp.queue('d12180e3-0fb7-4ddb-b1d2-b6d810e12de5', {m:'mesg'})
   //partition 4 of 10
   kp.queue('354afe16-939a-4ea8-8e17-8bb0840b6886', {m:'mesg'})
   //partition 5 of 10
   kp.queue('f562ac3b-2224-4e25-a0ab-56094e10c239', {m:'mesg'})
-
 })
 
 test('queue message', async (t) => {
