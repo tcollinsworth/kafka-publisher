@@ -31,7 +31,7 @@ Log and discard message if
 
 ## Requirements
 
-Node 8+
+Node 10+
 
 ## Getting started
 

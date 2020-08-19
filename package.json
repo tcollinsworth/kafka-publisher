@@ -1,15 +1,15 @@
 {
   "name": "kafka-publisher",
-  "version": "0.4.1",
+  "version": "1.0.1",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
-  "main": "kafka-publisher.js",
+  "main": "index.js",
   "keywords": [
     "kafka",
     "publisher",
     "fallback"
   ],
   "engines": {
-    "node": ">=8.0.0"
+    "node": ">=12.0.0"
   },
   "scripts": {
     "watchInteg": "NODE_ENV=DEBUG ava --fail-fast -v **/__integ-tests__/**/*test*.js --watch",
@@ -18,9 +18,7 @@
     "coverageDetail": "nyc --reporter=html --reporter=text ava",
     "ava": "ava",
     "test": "npm run ava",
-    "build": "babel lib --presets babel-preset-es2015 --out-dir dist",
-    "prepublish": "npm run build",
-    "start": "nodemon --exec babel-node lib/logging.js",
+    "start": "nodemon logging.js",
     "kafkaParitionerInteg": "ava --serial --fail-fast -v __integ-tests__/kafka-publisher-integ-tests.js",
     "lint": "eslint . --ext=js --ignore-pattern '**/__tests__' --ignore-pattern '**/__integ-tests__' --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix",
     "watchLint": "esw . --ext=js --ignore-pattern '**/__tests__' --ignore-pattern '**/__integ-tests__' --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix --watch"
@@ -37,22 +35,16 @@
   },
   "devDependencies": {
     "async-wait-until": "^1.2.4",
-    "ava": "^0.16.0",
-    "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.2.3",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-env": "^1.5.2",
-    "babel-register": "^6.24.1",
+    "ava": "^3.11.1",
     "eslint": "^3.19.0",
     "eslint-config-airbnb-base": "^11.2.0",
     "eslint-plugin-import": "^2.6.0",
-    "eslint-watch": "^4.0.2",
+    "eslint-watch": "^7.0.0",
     "ignore-styles": "^5.0.1",
-    "nyc": "^11.2.1",
+    "nyc": "^15.1.0",
     "sinon": "^2.3.5"
   },
   "dependencies": {
-    "babel-polyfill": "^6.23.0",
     "delay": "^4.1.0",
     "esm": "^3.0.84",
     "json-stringify-safe": "^5.0.1",
@@ -76,9 +68,7 @@
     "verbose": true,
     "require": [
       "ignore-styles",
-      "babel-register",
-      "babel-polyfill"
-    ],
-    "babel": "inherit"
+      "esm"
+    ]
   }
 }

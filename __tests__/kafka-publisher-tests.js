@@ -39,12 +39,12 @@ const mockFallbackPublisher = {
   readyEvent: sinon.stub(),
 }
 
-k.kafka.initKafkaProducer = function(options) {
+k.kafka.initKafkaProducer = function (options) {
   kafkaOptions = options
   return mockKafkaProducer
 }
 
-k.fallback.initFallbackPublisher = function(options) {
+k.fallback.initFallbackPublisher = function (options) {
   fallbackOptions = options
   return mockFallbackPublisher
 }
@@ -53,7 +53,7 @@ test.beforeEach(() => {
   reset()
 })
 
-test.afterEach.always(t => {
+test.afterEach.always((t) => {
   reset()
 })
 
@@ -66,14 +66,14 @@ function reset() {
 }
 
 function resetMockStubFunctions(mock) {
-  for(const p in mock) {
+  for (const p in mock) {
     if (mock[p].isSinonProxy) {
       mock[p].reset()
     }
   }
 }
 
-test('happy constructor and options', async t => {
+test('happy constructor and options', async (t) => {
   const options = {
     connectionString: 'testConnString',
 
@@ -135,7 +135,7 @@ test('happy constructor and options', async t => {
   t.deepEqual(options.fallback, expectedOptions)
 })
 
-test('constructor options undefined connectionString throws error', async t => {
+test('constructor options undefined connectionString throws error', async (t) => {
   const options = { connectionString: undefined }
   try {
     const kp = new k.KafkaPublisher(options)
@@ -145,7 +145,7 @@ test('constructor options undefined connectionString throws error', async t => {
   }
 })
 
-test('constructor options undefined throws error', async t => {
+test('constructor options undefined throws error', async (t) => {
   const options = undefined
   try {
     const kp = new k.KafkaPublisher(options)
@@ -155,9 +155,9 @@ test('constructor options undefined throws error', async t => {
   }
 })
 
-test('happy init', async t => {
+test('happy init', async (t) => {
   mockKafkaProducer.disconnect.onCall(0).callsArg(0)
-  const kp = new k.KafkaPublisher({connectionString: 'foo'})
+  const kp = new k.KafkaPublisher({ connectionString: 'foo' })
   kp.init()
 
   // on ready
@@ -175,8 +175,8 @@ test('happy init', async t => {
   t.is(5, mockKafkaProducer.on.args.length)
 })
 
-test('one error, happy init', async t => {
-  const kp = new k.KafkaPublisher({connectionString: 'foo', kafkaReadyOrErrorOrTimeoutMs: 1000, retryOptions: testRetryOptions})
+test('one error, happy init 1', async (t) => {
+  const kp = new k.KafkaPublisher({ connectionString: 'foo', kafkaReadyOrErrorOrTimeoutMs: 1000, retryOptions: testRetryOptions })
   kp.init()
   await delay(10)
 
@@ -193,10 +193,10 @@ test('one error, happy init', async t => {
   t.is(1, kp.getStatistics().kafkaEventErrorCnt)
 })
 
-test('one error, happy init', async t => {
+test('one error, happy init 2', async (t) => {
   mockKafkaProducer.connect.onCall(0).throws(new Error('test'))
 
-  const kp = new k.KafkaPublisher({connectionString: 'foo', kafkaReadyOrErrorOrTimeoutMs: 1000, retryOptions: testRetryOptions})
+  const kp = new k.KafkaPublisher({ connectionString: 'foo', kafkaReadyOrErrorOrTimeoutMs: 1000, retryOptions: testRetryOptions })
   kp.init()
   await delay(10)
 
@@ -209,17 +209,19 @@ test('one error, happy init', async t => {
   t.is(0, kp.getStatistics().kafkaEventErrorCnt)
 })
 
-test('happy shutdown', async t => {
-  const kp = new k.KafkaPublisher({connectionString: 'foo'})
+test('happy shutdown', async (t) => {
+  const kp = new k.KafkaPublisher({ connectionString: 'foo' })
   kp.shutdown()
 
   await waitUntil(() => mockKafkaProducer.disconnect.args.length > 0)
+
+  t.pass()
 })
 
-test('happy queue and publishing to kafka', async t => {
+test('happy queue and publishing to kafka', async (t) => {
   mockKafkaProducer.produce.onCall(0).returns(true)
 
-  const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic',})
+  const kp = new k.KafkaPublisher({ connectionString: 'foo', defaultTopic: 'testTopic' })
   kp.init()
   await delay(10)
 
@@ -241,11 +243,11 @@ test('happy queue and publishing to kafka', async t => {
   t.deepEqual(1, mockKafkaProducer.produce.args[0][5])
 })
 
-test('queue kafka send error fallsback and next send succeeds', async t => {
+test('queue kafka send error fallsback and next send succeeds', async (t) => {
   mockKafkaProducer.produce.onCall(0).returns(false)
   mockKafkaProducer.produce.onCall(1).returns(true)
 
-  const kp = new k.KafkaPublisher({connectionString: 'foo', defaultTopic: 'testTopic',})
+  const kp = new k.KafkaPublisher({ connectionString: 'foo', defaultTopic: 'testTopic' })
   kp.init()
   await delay(10)
 
@@ -271,8 +273,8 @@ test('queue kafka send error fallsback and next send succeeds', async t => {
     {
       topic: 'testTopic',
       mesgValue: stringify(mesg1),
-      ackKey: 1
-    }
+      ackKey: 1,
+    },
   ]
 
   await waitUntil(() => lodash.isEqual(mockFallbackPublisher.publish.args[0], expectedFileSendMockArgs))
@@ -284,10 +286,10 @@ test('queue kafka send error fallsback and next send succeeds', async t => {
   t.deepEqual(2, mockKafkaProducer.produce.args[1][5])
 })
 
-//TODO queue no defaultTopic
-//TODO publishInternal
-//TODO kafkaSendFallsbackWhileDownInternal
-//TODO kafka message too large
-//TODO kafka topic override
-//TODO publish timedout, kafka deliveryReport orphaned
-//TODO getStatistics, resetStatistics
+// TODO queue no defaultTopic
+// TODO publishInternal
+// TODO kafkaSendFallsbackWhileDownInternal
+// TODO kafka message too large
+// TODO kafka topic override
+// TODO publish timedout, kafka deliveryReport orphaned
+// TODO getStatistics, resetStatistics
