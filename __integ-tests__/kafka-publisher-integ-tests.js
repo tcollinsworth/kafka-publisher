@@ -1,8 +1,8 @@
 import { serial as test } from 'ava'
 // import sinon from 'sinon'
 import delay from 'delay'
-import uuidV4 from 'uuid/v4'
-import stringify from 'json-stringify-safe'
+import { v4 as uuidV4 } from 'uuid'
+// import stringify from 'json-stringify-safe'
 import lodash from 'lodash'
 
 import { KafkaPublisher } from '../index'

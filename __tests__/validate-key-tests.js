@@ -1,5 +1,5 @@
 import test from 'ava'
-import uuidV4 from 'uuid/v4'
+import { v4 as uuidV4 } from 'uuid'
 import stringify from 'json-stringify-safe'
 
 import { validateKey } from '../lib/validate-key'

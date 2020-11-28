@@ -160,7 +160,11 @@ const defaultOptions = {
     // level: 'debug', // default 'info' //comment out or set to 'info'
     // timestamp: true,
     prettyPrint: process.env.NODE_ENV === 'DEBUG' || false,
-    useLevelLabels: true,
+    formatters: {
+      level: (label) => {
+        return { levelL label }
+      }
+    },
   },
 }
 ```
