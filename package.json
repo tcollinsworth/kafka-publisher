@@ -1,6 +1,6 @@
 {
   "name": "kafka-publisher",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "type": "module",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
   "main": "index.mjs",
