@@ -1,11 +1,13 @@
-import { serial as test } from 'ava'
+import ava from 'ava'
 // import sinon from 'sinon'
 import delay from 'delay'
 import { v4 as uuidV4 } from 'uuid'
 // import stringify from 'json-stringify-safe'
 import lodash from 'lodash'
 
-import { KafkaPublisher } from '../index'
+import { KafkaPublisher } from '../index.mjs'
+
+const test = ava.serial
 
 let kp
 let cnt
@@ -24,7 +26,7 @@ function createKp(t) {
     //   'message.timeout.ms': 1
     // },
     logging: {
-      level: 'info', //'debug',
+      level: 'info', // 'debug',
     },
     fallback: {
       // enabled: false,
@@ -74,16 +76,21 @@ test('queue message', async (t) => {
   //   }
   //
   // }, 30000)
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     // if (kp.pending() > 100) console.log('kp.pending', kp.pending())
     while (kp.pending() > 0) {
+      // eslint-disable-next-line no-await-in-loop
       await delay(100)
     }
+    // eslint-disable-next-line no-await-in-loop
     await _send()
+    // eslint-disable-next-line no-await-in-loop
     await delay(1000)
   }
 })
 
+// eslint-disable-next-line no-unused-vars
 function getTooLargeMesg() {
   const tmpMsg = lodash.cloneDeep(mesgValue)
 
@@ -95,15 +102,18 @@ function getTooLargeMesg() {
   return tmpMsg
 }
 
+// eslint-disable-next-line no-underscore-dangle
 async function _send() {
-  if (++cnt % 1 == 0) console.log('send conn', connected, 'cnt', cnt, 'consecErrCnt', kp.getStatistics().consecutiveKafkaErrorCnt)
+  // eslint-disable-next-line no-console
+  if (++cnt % 1 === 0) console.log('send conn', connected, 'cnt', cnt, 'consecErrCnt', kp.getStatistics().consecutiveKafkaErrorCnt)
 
   kp.queue(uuidV4(), mesgValue, null, cb)
   // kp.queue(uuidV4(), getTooLargeMesg(), null, cb)
 }
 
 async function cb(error, deliveryReport) {
-  if (cnt % 1 == 0) console.log('cb dr', deliveryReport == null ? null : deliveryReport.opaque, error.message)
+  // eslint-disable-next-line no-console
+  if (cnt % 1 === 0) console.log('cb dr', deliveryReport == null ? null : deliveryReport.opaque, error.message)
   // await _send()
 }
 

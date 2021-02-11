@@ -1,11 +1,13 @@
-import { serial as test } from 'ava'
+import ava from 'ava'
 import sinon from 'sinon'
 import delay from 'delay'
 import waitUntil from 'async-wait-until'
 import stringify from 'json-stringify-safe'
 import lodash from 'lodash'
 
-import * as k from '../index'
+import * as k from '../index.mjs'
+
+const test = ava.serial
 
 const testRetryOptions = {
   retries: null, // not strictly required, however disables creating default retry table
@@ -39,12 +41,12 @@ const mockFallbackPublisher = {
   readyEvent: sinon.stub(),
 }
 
-k.kafka.initKafkaProducer = function (options) {
+k.kafka.initKafkaProducer = (options) => {
   kafkaOptions = options
   return mockKafkaProducer
 }
 
-k.fallback.initFallbackPublisher = function (options) {
+k.fallback.initFallbackPublisher = (options) => {
   fallbackOptions = options
   return mockFallbackPublisher
 }
@@ -53,12 +55,13 @@ test.beforeEach(() => {
   reset()
 })
 
-test.afterEach.always((t) => {
+test.afterEach.always(() => {
   reset()
 })
 
 function reset() {
   resetMockStubFunctions(mockKafkaProducer)
+  // eslint-disable-next-line no-unused-vars
   kafkaOptions = undefined
 
   resetMockStubFunctions(mockFallbackPublisher)
@@ -66,6 +69,7 @@ function reset() {
 }
 
 function resetMockStubFunctions(mock) {
+  // eslint-disable-next-line no-restricted-syntax
   for (const p in mock) {
     if (mock[p].isSinonProxy) {
       mock[p].reset()
@@ -138,7 +142,7 @@ test('happy constructor and options', async (t) => {
 test('constructor options undefined connectionString throws error', async (t) => {
   const options = { connectionString: undefined }
   try {
-    const kp = new k.KafkaPublisher(options)
+    k.KafkaPublisher(options)
     t.fail('expected error')
   } catch (err) {
     t.pass()
@@ -148,7 +152,7 @@ test('constructor options undefined connectionString throws error', async (t) =>
 test('constructor options undefined throws error', async (t) => {
   const options = undefined
   try {
-    const kp = new k.KafkaPublisher(options)
+    k.KafkaPublisher(options)
     t.fail('expected error')
   } catch (err) {
     t.pass()

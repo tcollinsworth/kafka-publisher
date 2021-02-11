@@ -2,7 +2,7 @@ import test from 'ava'
 // import { v4 as uuidV4 } from 'uuid'
 // import stringify from 'json-stringify-safe'
 
-import { validateValue } from '../lib/validate-value'
+import { validateValue } from '../lib/validate-value.mjs'
 
 test('number throws error', (t) => {
   const error = t.throws(() => validateValue(42))

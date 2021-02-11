@@ -2,7 +2,7 @@ import test from 'ava'
 import { v4 as uuidV4 } from 'uuid'
 import stringify from 'json-stringify-safe'
 
-import { validateKey } from '../lib/validate-key'
+import { validateKey } from '../lib/validate-key.mjs'
 
 test('uuid returns uuid', (t) => {
   const uuid = uuidV4()
