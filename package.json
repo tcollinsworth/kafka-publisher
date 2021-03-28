@@ -1,9 +1,8 @@
 {
   "name": "kafka-publisher",
-  "version": "2.0.1",
-  "type": "module",
+  "version": "3.0.0",
   "description": "kafka message publisher, fallback appending messages to a file while kafka unavailable",
-  "main": "index.mjs",
+  "main": "index.js",
   "keywords": [
     "kafka",
     "publisher",
@@ -15,15 +14,15 @@
   "scripts": {
     "watchInteg": "NODE_ENV=DEBUG ava --config integration-tests.config.cjs --watch",
     "integ": "NODE_ENV=DEBUG ava --config integration-tests.config.cjs",
-    "watchUnit": "NODE_ENV=DEBUG ava --fail-fast -v **/__tests__/**/*test*.mjs --watch",
+    "watchUnit": "NODE_ENV=DEBUG ava --fail-fast -v **/__tests__/**/*test*.*js --watch",
     "coverage": "nyc ava",
     "coverageDetail": "nyc --reporter=html --reporter=text ava",
     "ava": "ava",
     "test": "npm run ava",
-    "start": "nodemon logging.mjs",
-    "kafkaParitionerInteg": "ava --serial --fail-fast -v __integ-tests__/kafka-publisher-integ-tests.mjs",
-    "lint": "eslint . --ext=js --ext=mjs --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix",
-    "watchLint": "esw . --ext=js --ext=mjs --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix --watch"
+    "start": "nodemon logging.js",
+    "kafkaParitionerInteg": "ava --serial --fail-fast -v __integ-tests__/kafka-publisher-integ-tests.js",
+    "lint": "eslint . --ext=js --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix",
+    "watchLint": "esw . --ext=js --ignore-pattern '**/public/api-docs' --ignore-path .gitignore --fix --watch"
   },
   "esm": {
     "force": true,
@@ -36,27 +35,27 @@
     "url": "git@github.com:tcollinsworth/kafka-publisher.git"
   },
   "devDependencies": {
-    "async-wait-until": "^1.2.4",
+    "async-wait-until": "^2.0.4",
     "ava": "^3.15.0",
-    "eslint": "^7.19.0",
+    "eslint": "^7.23.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.22.1",
     "eslint-watch": "^7.0.0",
     "ignore-styles": "^5.0.1",
     "nyc": "^15.1.0",
-    "sinon": "^9.2.4"
+    "sinon": "^10.0.0"
   },
   "dependencies": {
     "delay": "^5.0.0",
     "esm": "^3.0.84",
     "json-stringify-safe": "^5.0.1",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "mkdirp": "^1.0.4",
     "moment": "^2.29.1",
     "murmur2-partitioner": "^1.0.0",
     "node-rdkafka": "^2.10.1",
-    "pino": "^6.11.1",
-    "pino-pretty": "^4.5.0",
+    "pino": "^6.11.2",
+    "pino-pretty": "^4.7.1",
     "promise-retry": "^2.0.1",
     "promise-timeout": "^1.3.0",
     "stdout-stream": "^1.4.0",

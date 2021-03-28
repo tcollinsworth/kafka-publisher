@@ -1,5 +1,5 @@
 module.exports = {
-  files: ['**/__tests__/**/*test*.mjs'],
+  files: ['**/__tests__/**/*test*.*js'],
   failFast: true,
   verbose: true,
   failWithoutAssertions: false,

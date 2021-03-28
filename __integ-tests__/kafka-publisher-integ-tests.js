@@ -5,7 +5,7 @@ import { v4 as uuidV4 } from 'uuid'
 // import stringify from 'json-stringify-safe'
 import lodash from 'lodash'
 
-import { KafkaPublisher } from '../index.mjs'
+import { KafkaPublisher } from '../index'
 
 const test = ava.serial
 

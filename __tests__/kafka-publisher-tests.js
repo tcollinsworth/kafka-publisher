@@ -1,13 +1,14 @@
 import ava from 'ava'
 import sinon from 'sinon'
 import delay from 'delay'
-import waitUntil from 'async-wait-until'
+import { waitUntil } from 'async-wait-until'
 import stringify from 'json-stringify-safe'
 import lodash from 'lodash'
 
-import * as k from '../index.mjs'
+import * as k from '../index'
 
 const test = ava.serial
+// const { waitUntil } = asyncWaitUntil
 
 const testRetryOptions = {
   retries: null, // not strictly required, however disables creating default retry table
