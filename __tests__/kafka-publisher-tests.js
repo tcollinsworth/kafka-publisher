@@ -8,7 +8,6 @@ import lodash from 'lodash'
 import * as k from '../index'
 
 const test = ava.serial
-// const { waitUntil } = asyncWaitUntil
 
 const testRetryOptions = {
   retries: null, // not strictly required, however disables creating default retry table
@@ -20,7 +19,6 @@ const testRetryOptions = {
   randomize: true,
 }
 
-let kafkaOptions
 let fallbackOptions
 
 const mockKafkaProducer = {
@@ -42,10 +40,7 @@ const mockFallbackPublisher = {
   readyEvent: sinon.stub(),
 }
 
-k.kafka.initKafkaProducer = (options) => {
-  kafkaOptions = options
-  return mockKafkaProducer
-}
+k.kafka.initKafkaProducer = () => mockKafkaProducer
 
 k.fallback.initFallbackPublisher = (options) => {
   fallbackOptions = options
@@ -62,8 +57,6 @@ test.afterEach.always(() => {
 
 function reset() {
   resetMockStubFunctions(mockKafkaProducer)
-  // eslint-disable-next-line no-unused-vars
-  kafkaOptions = undefined
 
   resetMockStubFunctions(mockFallbackPublisher)
   fallbackOptions = undefined

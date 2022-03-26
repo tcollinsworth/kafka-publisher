@@ -1,2 +1,15 @@
-
+__tests__
+scripts
+.npmignore
+kafkaFallbackLogs
+__integ-tests__
+integration-tests.config.cjs
+.idea
+.gitignore
+.git
+.eslintrc.cjs
+.eslintignore
+ava.config.cjs
 *.npmrc
+.nyc_output
+coverage
