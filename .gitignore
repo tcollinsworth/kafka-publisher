@@ -12,6 +12,8 @@ dist
 
 coverage
 
+kafkaFallbackLogs/*
+
 fallback*.log
 
 *.npmrc
